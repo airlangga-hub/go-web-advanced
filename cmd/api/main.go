@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -29,6 +30,7 @@ type application struct {
 }
 
 func main() {
+	godotenv.Load()
 
 	var cfg config
 
