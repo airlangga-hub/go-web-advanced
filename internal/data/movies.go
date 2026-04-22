@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/airlangga-hub/go-web-advanced/internal/validator"
+	"github.com/lib/pq"
 )
 
 type Movie struct {
@@ -58,7 +59,12 @@ type MovieModel struct {
 }
 
 func (m MovieModel) Insert(movie *Movie) error {
-	return nil
+	return m.DB.QueryRow(
+		`INSERT INTO movies (title, year, runtime, genres)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at, version`,
+		movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres),
+	).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (m MovieModel) Get(id int64) (*Movie, error) {
