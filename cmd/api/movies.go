@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/airlangga-hub/go-web-advanced/internal/data"
 	"github.com/airlangga-hub/go-web-advanced/internal/validator"
@@ -91,6 +92,12 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
+		return
+	}
+
+	expectedVersion := r.Header.Get("X-Expected-Version")
+	if expectedVersion != "" && expectedVersion != strconv.Itoa(int(movie.Version)) {
+		app.editConflictResponse(w, r)
 		return
 	}
 
