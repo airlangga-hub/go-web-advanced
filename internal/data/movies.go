@@ -7,13 +7,13 @@ import (
 )
 
 type Movie struct {
-	ID        int64
-	CreatedAt time.Time
-	Title     string
-	Year      int32
-	Runtime   int32
-	Genres    []string
-	Version   int32
+	ID        int64     `json:"id"`
+	CreatedAt time.Time `json:"-"`
+	Title     string    `json:"title"`
+	Year      int32     `json:"year,omitzero"`
+	Runtime   int32     `json:"-"`
+	Genres    []string  `json:"genres,omitzero"`
+	Version   int32     `json:"version"`
 }
 
 func (m Movie) MarshalJSON() ([]byte, error) {
@@ -23,20 +23,14 @@ func (m Movie) MarshalJSON() ([]byte, error) {
 		runtime = fmt.Sprintf("%d mins", m.Runtime)
 	}
 
+	type MovieAlias Movie
+
 	aux := struct {
-		ID      int64    `json:"id"`
-		Title   string   `json:"title"`
-		Year    int32    `json:"year,omitzero"`
-		Runtime string   `json:"runtime,omitzero"`
-		Genres  []string `json:"genres,omitzero"`
-		Version int32    `json:"version"`
+		MovieAlias
+		Runtime string `json:"runtime,omitzero"`
 	}{
-		ID:      m.ID,
-		Title:   m.Title,
-		Year:    m.Year,
-		Runtime: runtime,
-		Genres:  m.Genres,
-		Version: m.Version,
+		MovieAlias: MovieAlias(m),
+		Runtime:    runtime,
 	}
 
 	return json.Marshal(aux)
