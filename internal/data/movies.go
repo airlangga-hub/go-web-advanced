@@ -61,13 +61,22 @@ type MovieModel struct {
 }
 
 func (m MovieModel) Insert(ctx context.Context, movie *Movie) error {
-	return m.DB.QueryRowContext(
+	err := m.DB.QueryRowContext(
 		ctx,
 		`INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, version`,
 		movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres),
 	).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+
+	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return fmt.Errorf("%w: %w", err, ctx.Err())
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (m MovieModel) Get(ctx context.Context, id int64) (*Movie, error) {
@@ -95,6 +104,8 @@ func (m MovieModel) Get(ctx context.Context, id int64) (*Movie, error) {
 
 	if err != nil {
 		switch {
+		case err.Error() == "pq: canceling statement due to user request":
+			return nil, fmt.Errorf("%w: %w", err, ctx.Err())
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrRecordNotFound
 		default:
@@ -122,13 +133,15 @@ func (m MovieModel) Update(ctx context.Context, movie *Movie) error {
 
 	if err != nil {
 		switch {
+		case err.Error() == "pq: canceling statement due to user request":
+			return fmt.Errorf("%w: %w", err, ctx.Err())
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrEditConflict
 		default:
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -145,6 +158,9 @@ func (m MovieModel) Delete(ctx context.Context, id int64) error {
 	)
 
 	if err != nil {
+		if err.Error() == "pq: canceling statement due to user request" {
+			return fmt.Errorf("%w: %w", err, ctx.Err())
+		}
 		return err
 	}
 
