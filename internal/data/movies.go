@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -59,8 +60,9 @@ type MovieModel struct {
 	DB *sql.DB
 }
 
-func (m MovieModel) Insert(movie *Movie) error {
-	return m.DB.QueryRow(
+func (m MovieModel) Insert(ctx context.Context, movie *Movie) error {
+	return m.DB.QueryRowContext(
+		ctx,
 		`INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, version`,
@@ -68,14 +70,15 @@ func (m MovieModel) Insert(movie *Movie) error {
 	).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
-func (m MovieModel) Get(id int64) (*Movie, error) {
+func (m MovieModel) Get(ctx context.Context, id int64) (*Movie, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
 
 	var movie Movie
 
-	err := m.DB.QueryRow(
+	err := m.DB.QueryRowContext(
+		ctx,
 		`SELECT id, created_at, title, year, runtime, genres, version
 		FROM movies
 		WHERE id = $1`,
@@ -102,8 +105,9 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	return &movie, nil
 }
 
-func (m MovieModel) Update(movie *Movie) error {
-	err := m.DB.QueryRow(
+func (m MovieModel) Update(ctx context.Context, movie *Movie) error {
+	err := m.DB.QueryRowContext(
+		ctx,
 		`UPDATE movies
 		SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
 		WHERE id = $5 AND version = $6
@@ -128,12 +132,13 @@ func (m MovieModel) Update(movie *Movie) error {
 	return nil
 }
 
-func (m MovieModel) Delete(id int64) error {
+func (m MovieModel) Delete(ctx context.Context, id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
 
-	result, err := m.DB.Exec(
+	result, err := m.DB.ExecContext(
+		ctx,
 		`DELETE FROM movies
 		WHERE id = $1`,
 		id,
