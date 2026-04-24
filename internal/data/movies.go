@@ -179,7 +179,11 @@ func (m MovieModel) GetAll(ctx context.Context, title string, genres []string, f
 		ctx,
 		`SELECT id, created_at, title, year, runtime, genres, version
 		FROM movies
+		WHERE (LOWER(title) = LOWER($1) OR $1 = ''
+		AND (genres @> $2 OR $2 = '{}')
 		ORDER BY id`,
+		title,
+		pq.Array(genres),
 	)
 
 	if err != nil {
