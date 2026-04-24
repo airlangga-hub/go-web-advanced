@@ -48,7 +48,7 @@ func main() {
 
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 
 	db, err := openDB(cfg)
 	if err != nil {
