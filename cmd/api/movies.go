@@ -202,8 +202,8 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title    string
-		Genres   []string
+		Title  string
+		Genres []string
 		data.Filters
 	}
 
@@ -218,6 +218,8 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	input.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	input.Sort = app.readString(qs, "sort", "id")
+
+	input.SortSafelist = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
