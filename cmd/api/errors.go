@@ -43,3 +43,7 @@ func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.
 func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
 	app.errorResponse(w, r, http.StatusConflict, "unable to update the record due to an edit conflict, please try again")
 }
+
+func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
+	app.errorResponse(w, r, http.StatusTooManyRequests, "rate limit exceeded")
+}
