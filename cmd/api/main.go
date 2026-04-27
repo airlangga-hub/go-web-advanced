@@ -4,11 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/airlangga-hub/go-web-advanced/internal/data"
+	"github.com/airlangga-hub/go-web-advanced/internal/mailer"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -29,15 +32,25 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type application struct {
 	config config
 	logger *slog.Logger
 	models data.Models
+	mailer *mailer.Mailer
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 	godotenv.Load()
 
 	var cfg config
@@ -54,9 +67,19 @@ func main() {
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
-	flag.Parse()
+	mailtrapPort, err := strconv.Atoi(os.Getenv("MAILTRAP_PORT"))
+	if err != nil {
+		logger.Error("env variable MAILTRAP_PORT is not set")
+		os.Exit(1)
+	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("MAILTRAP_HOST"), "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", mailtrapPort, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("MAILTRAP_USERNAME"), "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("MAILTRAP_PASSWORD"), "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.airlangga.net>", "SMTP sender")
+
+	flag.Parse()
 
 	db, err := openDB(cfg)
 	if err != nil {
@@ -67,10 +90,17 @@ func main() {
 
 	logger.Info("db connection pool established")
 
+	mailer, err := mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer,
 	}
 
 	err = app.serve()
