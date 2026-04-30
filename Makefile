@@ -83,3 +83,12 @@ build/api:
 	@echo 'Building cmd/api...'
 	go build -ldflags='-s' -o=./bin/api ./cmd/api
 	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+
+# ==================================================================================== #
+# DEPLOYMENT
+# ==================================================================================== #
+
+## ssh/gen: generate new ssh keys
+.PHONY: ssh/gen
+ssh/gen:
+	ssh-keygen -t rsa -b 4096 -C "airlangga" -f $HOME/.ssh/id_rsa_deploy
