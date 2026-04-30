@@ -17,11 +17,14 @@ import (
 
 	"github.com/airlangga-hub/go-web-advanced/internal/data"
 	"github.com/airlangga-hub/go-web-advanced/internal/mailer"
+	"github.com/airlangga-hub/go-web-advanced/internal/vcs"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
-const version = "1.0.0"
+var (
+	version = vcs.Version()
+)
 
 type config struct {
 	port int
