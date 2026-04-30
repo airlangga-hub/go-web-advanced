@@ -92,3 +92,21 @@ build/api:
 .PHONY: ssh/gen
 ssh/gen:
 	ssh-keygen -t rsa -b 4096 -C "airlangga" -f $HOME/.ssh/id_rsa_deploy
+
+## remote/sync ip=$1: copy script to remote server 
+.PHONY: remote/sync
+remote/sync:
+	rsync -rP --delete ./remote/setup root@${ip}:/root
+
+## production/connect ip=$1: connect to the production server
+.PHONY: production/connect
+production/connect:
+	ssh airlangga@${ip}
+
+## production/deploy/api ip=$1: deploy the api to production
+.PHONY: production/deploy/api
+production/deploy/api:
+	rsync -P ./bin/linux_amd64/api airlangga@${ip}:~
+	rsync -rP --delete ./migrations airlangga@${ip}:~
+	rsync -P ./remote/production/api.service airlangga@${ip}:~
+	ssh -t airlangga@${ip} 'goose -dir ~/migrations postgres $$DB_DSN up && sudo mv ~/api.service /etc/systemd/system/ && sudo systemctl enable api && sudo systemctl restart api'
