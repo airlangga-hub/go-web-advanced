@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"flag"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -106,7 +108,21 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+	
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+	
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Unix()
+	}))
 
+	expvar.NewString("version").Set(version)
+	
 	app := &application{
 		config: cfg,
 		logger: logger,
