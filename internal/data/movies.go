@@ -222,7 +222,7 @@ func (m MovieModel) GetAll(ctx context.Context, title string, genres []string, f
 	if err = rows.Err(); err != nil {
 		return nil, Metadata{}, err
 	}
-	
+
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
 
 	return movies, metadata, nil

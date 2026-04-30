@@ -34,10 +34,10 @@ func (app *application) serve() error {
 		defer cancel()
 
 		e := srv.Shutdown(ctx)
-		
+
 		app.logger.Info("waiting background tasks to finish...")
 		app.wg.Wait()
-		
+
 		shutdownError <- e
 	}()
 
