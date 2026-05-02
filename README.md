@@ -11,8 +11,6 @@ This project implements advanced patterns for Golang Web Application, including:
 Below is the directory structure of this project:
 ```bash
 .
-├── Makefile
-├── README.md
 ├── cmd
 │   ├── api
 │   │   ├── context.go # set and get request context
@@ -32,12 +30,10 @@ Below is the directory structure of this project:
 │           │   └── main.go
 │           └── simple
 │               └── main.go
-├── go.mod
-├── go.sum
 ├── internal
 │   ├── data # database operations
 │   │   ├── filter.go # for pagination and filtering
-│   │   ├── models.go # struct to be injected into app
+│   │   ├── models.go # to be injected into app
 │   │   ├── movies.go
 │   │   ├── permissions.go
 │   │   ├── runtime.go
@@ -65,3 +61,7 @@ Below is the directory structure of this project:
         └── 01.sh
 ```
 
+# Tech Stack
+* Go
+* PostgreSQL
+* Goose
